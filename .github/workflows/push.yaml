@@ -75,13 +75,10 @@ jobs:
           docker tag "$LOADED_IMAGE" "$IMAGE_TAG"
           docker push "$IMAGE_TAG"
 
-      - name: Tag and push latest (main only)
-        if: github.ref_name == 'main'
-        run: |
-          IMAGE_TAG="${{ env.IMAGE_NAME }}:${{ inputs.git_tag }}"
-          IMAGE_LATEST="${{ env.IMAGE_NAME }}:latest"
-          docker tag "$IMAGE_TAG" "$IMAGE_LATEST"
-          docker push "$IMAGE_LATEST"
+      # No ":latest" tag is pushed — ECR repos use IMMUTABLE tag mutability
+      # (terraform/modules/registry), so re-pushing "latest" on every build
+      # would fail after the first push. The versioned tag (e.g. frontend-v0.0.2)
+      # is the only tag Helm values.prod.yaml ever references.
 
       - name: Create and push git tag (main only, if not exists)
         if: github.ref_name == 'main' && inputs.tag_exists != 'true'
